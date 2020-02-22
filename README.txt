@@ -1,0 +1,14 @@
+1. Contents: 
+	-utils.c/utils.h: Includes functions for reading input files and writing output files as well as any global variables.
+	-encode.c/encode.h: Functions used for encoding data as well as calculating entropy.
+	-decode.c/decode.h: Function needed to decode data encoded using the encode mode.
+	-main.c: primary file to be run. Includes functions that run entire encode/decode process.
+
+2. Compiling: use included makefile. Simply use 'make' to generate executables, use 'make clean' to remove.
+
+3. Running: Input and output filenames as well as run mode included as runtime arguments. 1 = encode mode while 2 = decode mode.
+	Example: "./runlen in.txt out.txt 1" to encode in.txt's contents and save the result in out.txt. Conversely, "./runlen in.txt out.txt 2" will decode in.txt's contents if in.txt if an encoded file and save the result in out.txt.
+
+4. Notes: I had to come up with a solution so that the program would work with both alpha and numeric characters as well as any other symbols. Working with only alpha characters one can just use the character follow by the length of its run. When numbers may also need to be encoded, this isn't possible. My solution is to use a control character, '*'. When encoding data, the pair of (key, run-length) is preceded by an asterisk, so for example, instead of AAAABBBB becoming A3B3, it will become *A4*B4. This does not save space in all cases, but given enough long runs it should. In order to overcome this, when a run is of length one, it doesn't include the length. So, AAAABCCCC becomes *A4*B*C4. The need for the control character can be seen here: 1111AAAA22223333 -> *14*A4*24*34 is decipherable, whereas 14A42434 is not since it is unclear if the run is 2 of length 434 or 2 of length 4 and 3 of length 4.
+	However, I then rethought this. I decided that in a real life scenario there may not be many extremely long runs, but rather runs of lengths less than 10 would be more common. My newer solution involved only using a single digit to represent the run length, meaning runs of length 10 or more will require a back to back sequence. For example, AAAAAAAAAAAA will become A9A3, so something like AAAA1111BBBB Can be encoded as A414B4 and it can be decoded since instead of a run of A's of length 414, it must be a run of length four followed by four 1's. Given short runs, this should save space in the encoded output, using 2 characters instead of 3 for short runs. This does, however, require noting runs of length 1, whereas in the previous methods, runs of length one could be omitted by scanning for a numerical value and in absence of one before the next *, simply decoding a single character.
+	My program will handle newline chars '\n' by simply including a newline in the encoded version rather than encoding it but will not correctly handle other special chars such as tabs.
